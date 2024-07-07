@@ -1,96 +1,100 @@
 .chatContainer {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   height: 100%;
   width: 100%;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .inputForm {
   display: flex;
   width: 100%;
-  padding: 10px;
-  padding-bottom: 40px;
-  order: 1;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
 }
 
 .input {
   flex-grow: 1;
-  padding: 16px 24px;
+  padding: 12px 20px;
   margin-right: 10px;
-  border-radius: 60px;
-  border: 2px solid transparent;
+  border-radius: 30px;
+  border: 2px solid #e9ecef;
   font-size: 1em;
-  background-color: #efefef;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
 }
 
 .input:focus {
-  outline: none !important;
-  border-color: #000;
-  background-color: white;
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2);
 }
 
 .button {
-  padding: 8px 24px;
-  background-color: #000;
+  padding: 12px 24px;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   font-size: 1em;
-  border-radius: 60px; /* Removed duplicate border-radius property */
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.button:hover {
+  background-color: #2a75e6;
+  transform: translateY(-2px);
 }
 
 .button:disabled {
-  background-color: lightgrey;
+  background-color: #a0a0a0;
+  cursor: not-allowed;
 }
 
 .messages {
   flex-grow: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  order: 2;
-  white-space: pre-wrap;
+  gap: 16px;
 }
 
 .userMessage,
 .assistantMessage,
 .codeMessage {
-  margin: 8px 0;
-  padding: 8px 16px;
-  align-self: flex-start;
-  border-radius: 15px;
   max-width: 80%;
-  overflow-wrap: break-word;
-}
-
-.assistantMessage img {
-  max-width: 100%;
-  margin: 8px 0px 8px 0px;
-  border-radius: 8px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .userMessage {
   align-self: flex-end;
-  color: #fff;
-  background-color: #000;
+  background-color: var(--primary-color);
+  color: white;
 }
 
 .assistantMessage {
-  background-color: #efefef;
+  align-self: flex-start;
+  background-color: #f1f3f5;
+  color: var(--text-color);
+  line-height: 1.8;
 }
 
 .codeMessage {
-  padding: 10px 16px;
-  background-color: #e9e9e9;
-  font-family: monospace;
-  counter-reset: line;
+  align-self: flex-start;
+  background-color: #2b2d42;
+  color: #ffffff;
+  font-family: 'Fira Code', monospace;
 }
 
-.codeMessage > div {
-  margin-top: 4px;
-}
-
-.codeMessage span {
-  color: #b8b8b8;
-  margin-right: 8px;
+.assistantMessage img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 8px;
 }

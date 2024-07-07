@@ -25,6 +25,10 @@ const FunctionCalling = () => {
     return JSON.stringify(data);
   };
 
+  const sendMessage = (message: string) => {
+    console.log("Sending message:", message);
+  };
+
   return (
     <main className={styles.main}>
       <div className={styles.container}>
@@ -34,6 +38,7 @@ const FunctionCalling = () => {
             temperature={weatherData.temperature?.toString() || "---"}
             conditions={weatherData.conditions || "Sunny"}
             isEmpty={isEmpty}
+            sendMessage={sendMessage}
           />
         </div>
         <div className={styles.chatContainer}>
