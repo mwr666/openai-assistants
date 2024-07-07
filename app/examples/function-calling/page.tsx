@@ -10,10 +10,12 @@ const FunctionCalling = () => {
     <main className={styles.main}>
       <div className={styles.container}>
         <div className={styles.column}>
-          <h1>Who Covers It?</h1>
+          <h1 className={styles.heading}>Who Covers It?</h1>
           <p>
             Identify journalists, bloggers, and publications to pitch your story
           </p>
+          <br />
+          <p>Powered by everyone's favorite <a href="https://hypelab.digital" target="_blank">PR agency</a></p>
         </div>
         <div className={styles.chatContainer}>
           <div className={styles.chat}>

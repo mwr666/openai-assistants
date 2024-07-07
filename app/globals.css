@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Open+Sans:wght@400;600;700&display=swap');
+
 :root {
   --max-width: 1200px;
   --border-radius: 12px;
@@ -7,6 +9,7 @@
   --secondary-color: #ff006e;
   --text-color: #2b2d42;
   --card-background: #ffffff;
+  --font-heading: 'Open Sans', sans-serif;
 }
 
 * {
