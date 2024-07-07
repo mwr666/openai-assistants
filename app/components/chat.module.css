@@ -9,6 +9,13 @@
   overflow: hidden;
 }
 
+.buttonContainer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 20px;
+}
+
 .inputForm {
   display: flex;
   width: 100%;
@@ -55,6 +62,16 @@
   cursor: not-allowed;
 }
 
+.buttonSecondary {
+  background-color: #f1f3f5;
+  color: var(--text-color);
+}
+
+.buttonSecondary:hover {
+  background-color: #e9ecef;
+  transform: translateY(-2px);
+}
+
 .messages {
   flex-grow: 1;
   overflow-y: auto;
@@ -90,7 +107,7 @@
   align-self: flex-start;
   background-color: #2b2d42;
   color: #ffffff;
-  font-family: 'Fira Code', monospace;
+  font-family: "Fira Code", monospace;
 }
 
 .assistantMessage img {

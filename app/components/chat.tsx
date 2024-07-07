@@ -1,12 +1,22 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import styles from "./chat.module.css";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import { AssistantStream } from "openai/lib/AssistantStream";
-import Markdown from "react-markdown";
 // @ts-expect-error - no types for this yet
-import { AssistantStreamEvent } from "openai/resources/beta/assistants/assistants";
-import { RequiredActionFunctionToolCall } from "openai/resources/beta/threads/runs/runs";
+import {
+  AssistantStreamEvent,
+} from "openai/resources/beta/assistants/assistants";
+import {
+  RequiredActionFunctionToolCall,
+} from "openai/resources/beta/threads/runs/runs";
+import Markdown from "react-markdown";
+
+import styles from "./chat.module.css";
 
 type MessageProps = {
   role: "user" | "assistant" | "code";
@@ -26,16 +36,7 @@ const AssistantMessage = ({ text }: { text: string }) => {
 };
 
 const CodeMessage = ({ text }: { text: string }) => {
-  return (
-    <div className={styles.codeMessage}>
-      {text.split("\n").map((line, index) => (
-        <div key={index}>
-          <span>{`${index + 1}. `}</span>
-          {line}
-        </div>
-      ))}
-    </div>
-  );
+  return null;
 };
 
 const Message = ({ role, text }: MessageProps) => {
@@ -118,13 +119,19 @@ const Chat = ({
     handleReadableStream(stream);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!userInput.trim()) return;
-    sendMessage(userInput);
+  const handleSubmit = (
+    e?: React.FormEvent<HTMLFormElement>,
+    input?: string
+  ) => {
+    if (e) e.preventDefault();
+
+    const messageToSend = input || userInput;
+    if (!messageToSend.trim()) return;
+
+    sendMessage(messageToSend);
     setMessages((prevMessages) => [
       ...prevMessages,
-      { role: "user", text: userInput },
+      { role: "user", text: messageToSend },
     ]);
     setUserInput("");
     setInputDisabled(true);
@@ -142,7 +149,7 @@ const Chat = ({
   const handleTextDelta = (delta) => {
     if (delta.value != null) {
       appendToLastMessage(delta.value);
-    };
+    }
     if (delta.annotations != null) {
       annotateLastMessage(delta.annotations);
     }
@@ -151,7 +158,7 @@ const Chat = ({
   // imageFileDone - show image in chat
   const handleImageFileDone = (image) => {
     appendToLastMessage(`\n![${image.file_id}](/api/files/${image.file_id})\n`);
-  }
+  };
 
   // toolCallCreated - log new tool call
   const toolCallCreated = (toolCall) => {
@@ -236,17 +243,16 @@ const Chat = ({
         ...lastMessage,
       };
       annotations.forEach((annotation) => {
-        if (annotation.type === 'file_path') {
+        if (annotation.type === "file_path") {
           updatedLastMessage.text = updatedLastMessage.text.replaceAll(
             annotation.text,
             `/api/files/${annotation.file_path.file_id}`
           );
         }
-      })
+      });
       return [...prevMessages.slice(0, -1), updatedLastMessage];
     });
-    
-  }
+  };
 
   return (
     <div className={styles.chatContainer}>
@@ -256,6 +262,26 @@ const Chat = ({
         ))}
         <div ref={messagesEndRef} />
       </div>
+      {messages.length === 0 && (
+        <div className={styles.buttonContainer}>
+          <button
+            className={`${styles.button} ${styles.buttonSecondary}`}
+            onClick={() =>
+              handleSubmit(undefined, "Who covers AI at TechCrunch?")
+            }
+          >
+            Who covers AI at TechCrunch?
+          </button>
+          <button
+            className={`${styles.button} ${styles.buttonSecondary}`}
+            onClick={() =>
+              handleSubmit(undefined, "What does Kara Swisher cover?")
+            }
+          >
+            What does Kara Swisher cover?
+          </button>
+        </div>
+      )}
       <form
         onSubmit={handleSubmit}
         className={`${styles.inputForm} ${styles.clearfix}`}
@@ -265,7 +291,7 @@ const Chat = ({
           className={styles.input}
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Enter your question (e.g. Who covers Apple at Bloomberg)"
+          placeholder="Enter your question (e.g. Who covers Apple at Bloomberg?)"
         />
         <button
           type="submit"
