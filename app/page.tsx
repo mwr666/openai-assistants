@@ -1,30 +1,37 @@
 "use client";
 
 import React from "react";
+
+import Chat from "./components/chat";
 import styles from "./page.module.css";
 
-const Home = () => {
-  const categories = {
-    "Basic chat": "basic-chat",
-    "Function calling": "function-calling",
-    "File search": "file-search",
-    All: "all",
-  };
-
+const FunctionCalling = () => {
   return (
     <main className={styles.main}>
-      <div className={styles.title}>
-        Explore sample apps built with Assistants API
-      </div>
       <div className={styles.container}>
-        {Object.entries(categories).map(([name, url]) => (
-          <a key={name} className={styles.category} href={`/examples/${url}`}>
-            {name}
-          </a>
-        ))}
+        <div className={styles.column}>
+          <h1 className={styles.heading}>Who Covers It?</h1>
+          <p>
+            Identify journalists, bloggers, and publications to pitch your story
+          </p>
+          <br />
+          <p>
+            <em>
+              Powered by everyone's favorite{" "}
+              <a href="https://hypelab.digital" target="_blank">
+                PR agency
+              </a>
+            </em>
+          </p>
+        </div>
+        <div className={styles.chatContainer}>
+          <div className={styles.chat}>
+            <Chat />
+          </div>
+        </div>
       </div>
     </main>
   );
 };
 
-export default Home;
+export default FunctionCalling;
