@@ -15,7 +15,7 @@ const FunctionCalling = () => {
             Identify journalists, bloggers, and publications to pitch your story
           </p>
           <br />
-          <p>Powered by everyone's favorite <a href="https://hypelab.digital" target="_blank">PR agency</a></p>
+          <p><em>Powered by everyone's favorite <a href="https://hypelab.digital" target="_blank">PR agency</a></em></p>
         </div>
         <div className={styles.chatContainer}>
           <div className={styles.chat}>
