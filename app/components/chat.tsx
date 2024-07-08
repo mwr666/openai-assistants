@@ -283,7 +283,7 @@ const Chat = ({
           <button
             className={`${styles.button} ${styles.buttonSecondary}`}
             onClick={() =>
-              handleSubmit(undefined, "Who covers Apple?")
+              handleSubmit(undefined, "Which journalists and bloggers cover Apple?")
             }
           >
             Who covers Apple?
