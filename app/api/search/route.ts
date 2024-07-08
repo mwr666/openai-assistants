@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const runtime = 'edge';
+
 type ApiResponse = {
   code: number;
   status: number;
@@ -11,7 +13,7 @@ type ApiResponse = {
   }[];
 };
 
-async function searchWeb({ query }: { query: string }): Promise<string> {
+async function searchWeb({ query }: { query: string }): Promise<ReadableStream> {
   console.log(`Searching for: ${query}`);
 
   const apiKey = process.env.JINA_API_KEY;
@@ -20,32 +22,40 @@ async function searchWeb({ query }: { query: string }): Promise<string> {
     throw new Error("JINA_API_KEY is not set in the environment variables");
   }
 
-  try {
-    console.log("Sending request to Jina AI Reader API");
-    const encodedQuery = encodeURIComponent(query);
-    const url = `https://s.jina.ai/${encodedQuery}`;
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-    });
+  const encoder = new TextEncoder();
 
-    console.log(`Response status: ${response.status}`);
-    if (!response.ok) {
-      console.error(`HTTP error! status: ${response.status}`);
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+  return new ReadableStream({
+    async start(controller) {
+      try {
+        console.log("Sending request to Jina AI Reader API");
+        const encodedQuery = encodeURIComponent(query);
+        const url = `https://s.jina.ai/${encodedQuery}`;
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+        });
 
-    const data = (await response.json()) as ApiResponse;
-    const content = data.data[0].content;
+        console.log(`Response status: ${response.status}`);
+        if (!response.ok) {
+          console.error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-    return content || `No results found for: ${query}`;
-  } catch (error) {
-    console.error("Error in searchWeb:", error);
-    return `Error searching for: ${query}`;
-  }
+        const data = (await response.json()) as ApiResponse;
+        const content = data.data[0].content;
+
+        controller.enqueue(encoder.encode(content || `No results found for: ${query}`));
+      } catch (error) {
+        console.error("Error in searchWeb:", error);
+        controller.enqueue(encoder.encode(`Error searching for: ${query}`));
+      } finally {
+        controller.close();
+      }
+    },
+  });
 }
 
 export async function POST(request: Request) {
@@ -55,8 +65,13 @@ export async function POST(request: Request) {
   const { search_query } = requestBody;
 
   try {
-    const searchResult = await searchWeb({ query: search_query });
-    return NextResponse.json({ result: searchResult });
+    const searchStream = await searchWeb({ query: search_query });
+    return new Response(searchStream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
+      },
+    });
   } catch (error) {
     console.error("Error performing web search:", error);
     return NextResponse.json(

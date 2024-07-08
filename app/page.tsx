@@ -38,9 +38,21 @@ const FunctionCalling = () => {
                   body: JSON.stringify({ search_query: query }),
                 });
 
-                const data = await response.json();
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-                return data.result;
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let result = '';
+
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  result += decoder.decode(value);
+                }
+
+                return result;
               }}
             />
           </div>
