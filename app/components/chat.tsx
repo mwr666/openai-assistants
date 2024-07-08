@@ -6,7 +6,7 @@ import { AssistantStream } from "openai/lib/AssistantStream";
 import {
   AssistantStreamEvent,
   RequiredActionFunctionToolCall,
-} from "openai/resources/beta/assistants/assistants";
+} from "openai/resources";
 import Markdown from "react-markdown";
 
 import styles from "./chat.module.css";
@@ -57,6 +57,7 @@ const Chat = ({ functionCallHandler, searchWebHandler }: ChatProps) => {
   const [messages, setMessages] = useState([]);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [threadId, setThreadId] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   // automatically scroll to bottom of chat
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -176,10 +177,11 @@ const Chat = ({ functionCallHandler, searchWebHandler }: ChatProps) => {
         let result;
         if (toolCall.function.name === "search_web") {
           console.log("calling searchWebHandler", toolCall);
-
+          setIsSearching(true);
           result = await searchWebHandler(
             JSON.parse(toolCall.function.arguments).search_query
           );
+          setIsSearching(false);
         } else {
           result = await functionCallHandler(toolCall);
         }
@@ -262,6 +264,12 @@ const Chat = ({ functionCallHandler, searchWebHandler }: ChatProps) => {
         ))}
         <div ref={messagesEndRef} />
       </div>
+      {isSearching && (
+        <div className={styles.loadingIndicator}>
+          <div className={styles.spinner}></div>
+          <p>Searching the web...</p>
+        </div>
+      )}
       {messages.length === 0 && (
         <div className={styles.buttonContainer}>
           <button
