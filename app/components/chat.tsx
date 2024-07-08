@@ -1,10 +1,6 @@
 "use client";
 
-import React, {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { AssistantStream } from "openai/lib/AssistantStream";
 import {
@@ -56,20 +52,7 @@ type ChatProps = {
   searchWebHandler?: (query: string) => Promise<string>;
 };
 
-const Chat = ({
-  functionCallHandler = () => Promise.resolve(""),
-  searchWebHandler = async (query: string) => {
-    const response = await fetch('/api/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ search_query: query }),
-    });
-    const data = await response.json();
-    return data.result;
-  },
-}: ChatProps) => {
+const Chat = ({ functionCallHandler, searchWebHandler }: ChatProps) => {
   const [userInput, setUserInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [inputDisabled, setInputDisabled] = useState(false);
@@ -192,7 +175,11 @@ const Chat = ({
       toolCalls.map(async (toolCall) => {
         let result;
         if (toolCall.function.name === "search_web") {
-          result = await searchWebHandler(toolCall.function.arguments.search_query);
+          console.log("calling searchWebHandler", toolCall);
+
+          result = await searchWebHandler(
+            JSON.parse(toolCall.function.arguments).search_query
+          );
         } else {
           result = await functionCallHandler(toolCall);
         }
@@ -296,7 +283,10 @@ const Chat = ({
           <button
             className={`${styles.button} ${styles.buttonSecondary}`}
             onClick={() =>
-              handleSubmit(undefined, "Which journalists and bloggers cover Apple?")
+              handleSubmit(
+                undefined,
+                "Which journalists and bloggers cover Apple?"
+              )
             }
           >
             Who covers Apple?
