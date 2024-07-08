@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={inter.className}>
         {assistantId ? children : <Warnings />}
-        <img className="logo" src="/openai.svg" alt="OpenAI Logo" />
+       <img className="logo" src="/hypelab.png" alt="hype lab logo" /> 
         <Analytics />
         <SpeedInsights />
       </body>
