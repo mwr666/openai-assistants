@@ -280,6 +280,14 @@ const Chat = ({
           >
             What does Kara Swisher cover?
           </button>
+          <button
+            className={`${styles.button} ${styles.buttonSecondary}`}
+            onClick={() =>
+              handleSubmit(undefined, "Who covers Apple?")
+            }
+          >
+            Who covers Apple?
+          </button>
         </div>
       )}
       <form
@@ -291,7 +299,7 @@ const Chat = ({
           className={styles.input}
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Enter your question (e.g. Who covers Apple at Bloomberg?)"
+          placeholder="Enter your question (e.g. Who covers Apple?)"
         />
         <button
           type="submit"
