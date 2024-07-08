@@ -7,13 +7,10 @@ import React, {
 } from "react";
 
 import { AssistantStream } from "openai/lib/AssistantStream";
-// @ts-expect-error - no types for this yet
 import {
   AssistantStreamEvent,
-} from "openai/resources/beta/assistants/assistants";
-import {
   RequiredActionFunctionToolCall,
-} from "openai/resources/beta/threads/runs/runs";
+} from "openai/resources/beta/assistants/assistants";
 import Markdown from "react-markdown";
 
 import styles from "./chat.module.css";
@@ -56,10 +53,22 @@ type ChatProps = {
   functionCallHandler?: (
     toolCall: RequiredActionFunctionToolCall
   ) => Promise<string>;
+  searchWebHandler?: (query: string) => Promise<string>;
 };
 
 const Chat = ({
-  functionCallHandler = () => Promise.resolve(""), // default to return empty string
+  functionCallHandler = () => Promise.resolve(""),
+  searchWebHandler = async (query: string) => {
+    const response = await fetch('/api/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ search_query: query }),
+    });
+    const data = await response.json();
+    return data.result;
+  },
 }: ChatProps) => {
   const [userInput, setUserInput] = useState("");
   const [messages, setMessages] = useState([]);
@@ -179,10 +188,14 @@ const Chat = ({
   ) => {
     const runId = event.data.id;
     const toolCalls = event.data.required_action.submit_tool_outputs.tool_calls;
-    // loop over tool calls and call function handler
     const toolCallOutputs = await Promise.all(
       toolCalls.map(async (toolCall) => {
-        const result = await functionCallHandler(toolCall);
+        let result;
+        if (toolCall.function.name === "search_web") {
+          result = await searchWebHandler(toolCall.function.arguments.search_query);
+        } else {
+          result = await functionCallHandler(toolCall);
+        }
         return { output: result, tool_call_id: toolCall.id };
       })
     );

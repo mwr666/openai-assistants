@@ -26,8 +26,24 @@ const FunctionCalling = () => {
         </div>
         <div className={styles.chatContainer}>
           <div className={styles.chat}>
-            <Chat />
+            <Chat searchWebHandler={async (query) => {
+              const response = await fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ search_query: query }),
+              });
+              const data = await response.json();
+              return data.result;
+            }} />
           </div>
+        </div>
+        <div className={styles.footer}>
+          <br />
+          <p>
+            Information <em>may</em> be out of date or incorrect. Verify everything.{" "}
+          </p>
         </div>
       </div>
     </main>
