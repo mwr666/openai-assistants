@@ -4,6 +4,7 @@ import React from "react";
 
 import Chat from "./components/chat";
 import styles from "./page.module.css";
+import Exa from "exa-js";
 
 const FunctionCalling = () => {
   return (
@@ -53,6 +54,25 @@ const FunctionCalling = () => {
                 }
 
                 return result;
+              }}
+              exaSearchHandler={async (query) => {
+                console.log("exaSearchHandler", query);
+
+                const exaApiKey = process.env.EXA_API_KEY;
+
+                if (!exaApiKey) {
+                  console.error("EXA_API_KEY is not set in the environment variables");
+                  throw new Error("EXA_API_KEY is not set in the environment variables");
+                }
+
+                const exa = new Exa(exaApiKey);
+                const exaResponse = await exa.search(query);
+
+                const exaContent = exaResponse.results.map(result =>
+                  `${result.title}\n${result.url}\n${result.text}`
+                ).join('\n\n');
+
+                return exaContent;
               }}
             />
           </div>

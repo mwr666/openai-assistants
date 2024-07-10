@@ -23,7 +23,13 @@ const UserMessage = ({ text }: { text: string }) => {
 const AssistantMessage = ({ text }: { text: string }) => {
   return (
     <div className={styles.assistantMessage}>
-      <Markdown>{text}</Markdown>
+      <Markdown
+        components={{
+          a: ({ node, ...props }) => <a target="_blank" rel="noopener noreferrer" {...props} />
+        }}
+      >
+        {text}
+      </Markdown>
     </div>
   );
 };
@@ -50,9 +56,10 @@ type ChatProps = {
     toolCall: RequiredActionFunctionToolCall
   ) => Promise<string>;
   searchWebHandler?: (query: string) => Promise<string>;
+  exaSearchHandler?: (query: string) => Promise<string>;
 };
 
-const Chat = ({ functionCallHandler, searchWebHandler }: ChatProps) => {
+const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatProps) => {
   const [userInput, setUserInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [inputDisabled, setInputDisabled] = useState(false);
@@ -81,35 +88,61 @@ const Chat = ({ functionCallHandler, searchWebHandler }: ChatProps) => {
   }, []);
 
   const sendMessage = async (text) => {
-    const response = await fetch(
-      `/api/assistants/threads/${threadId}/messages`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          content: text,
-        }),
+    try {
+      const response = await fetch(
+        `/api/assistants/threads/${threadId}/messages`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            content: text,
+          }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    );
-    const stream = AssistantStream.fromReadableStream(response.body);
-    handleReadableStream(stream);
+      const stream = AssistantStream.fromReadableStream(response.body);
+      handleReadableStream(stream);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "assistant", text: "An error occurred while sending the message. Please try again." },
+      ]);
+      setInputDisabled(false);
+    }
   };
 
   const submitActionResult = async (runId, toolCallOutputs) => {
-    const response = await fetch(
-      `/api/assistants/threads/${threadId}/actions`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          runId: runId,
-          toolCallOutputs: toolCallOutputs,
-        }),
+    try {
+      const response = await fetch(
+        `/api/assistants/threads/${threadId}/actions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            runId: runId,
+            toolCallOutputs: toolCallOutputs,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    );
-    const stream = AssistantStream.fromReadableStream(response.body);
-    handleReadableStream(stream);
+
+      const stream = AssistantStream.fromReadableStream(response.body);
+      handleReadableStream(stream);
+    } catch (error) {
+      console.error("Error in submitActionResult:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "assistant", text: "An error occurred while processing the request. Please try again." },
+      ]);
+      setInputDisabled(false);
+    }
   };
 
   const handleSubmit = (
@@ -182,6 +215,13 @@ const Chat = ({ functionCallHandler, searchWebHandler }: ChatProps) => {
             JSON.parse(toolCall.function.arguments).search_query
           );
           setIsSearching(false);
+        } else if (toolCall.function.name === "exa_researcher") {
+          console.log("calling exaSearchHandler", toolCall);
+          setIsSearching(true);
+          result = await exaSearchHandler(
+            JSON.parse(toolCall.function.arguments).search_query
+          );
+          setIsSearching(false);
         } else {
           result = await functionCallHandler(toolCall);
         }
@@ -198,23 +238,41 @@ const Chat = ({ functionCallHandler, searchWebHandler }: ChatProps) => {
   };
 
   const handleReadableStream = (stream: AssistantStream) => {
-    // messages
-    stream.on("textCreated", handleTextCreated);
-    stream.on("textDelta", handleTextDelta);
+    try {
+      // messages
+      stream.on("textCreated", handleTextCreated);
+      stream.on("textDelta", handleTextDelta);
 
-    // image
-    stream.on("imageFileDone", handleImageFileDone);
+      // image
+      stream.on("imageFileDone", handleImageFileDone);
 
-    // code interpreter
-    stream.on("toolCallCreated", toolCallCreated);
-    stream.on("toolCallDelta", toolCallDelta);
+      // code interpreter
+      stream.on("toolCallCreated", toolCallCreated);
+      stream.on("toolCallDelta", toolCallDelta);
 
-    // events without helpers yet (e.g. requires_action and run.done)
-    stream.on("event", (event) => {
-      if (event.event === "thread.run.requires_action")
-        handleRequiresAction(event);
-      if (event.event === "thread.run.completed") handleRunCompleted();
-    });
+      // events without helpers yet (e.g. requires_action and run.done)
+      stream.on("event", (event) => {
+        if (event.event === "thread.run.requires_action")
+          handleRequiresAction(event);
+        if (event.event === "thread.run.completed") handleRunCompleted();
+      });
+
+      stream.on("error", (error) => {
+        console.error("Stream error:", error);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { role: "assistant", text: "An error occurred while processing the response. Please try again." },
+        ]);
+        setInputDisabled(false);
+      });
+    } catch (error) {
+      console.error("Error handling readable stream:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "assistant", text: "An error occurred while processing the response. Please try again." },
+      ]);
+      setInputDisabled(false);
+    }
   };
 
   /*
