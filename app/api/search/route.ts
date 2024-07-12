@@ -36,12 +36,8 @@ async function searchWeb({ query }: { query: string }): Promise<ReadableStream> 
         const trimmedQuery = query.trim();
         console.log(`Trimmed query: "${trimmedQuery}"`);
 
-        console.log("Sending request to Exa API");
         const exa = new Exa(exaApiKey);
-        console.log("Exa instance created");
-
         const exaResponse = await exa.search(trimmedQuery);
-        console.log("Exa API response received");
 
         if (!exaResponse || !exaResponse.results || exaResponse.results.length === 0) {
           throw new Error("No results found from Exa API");

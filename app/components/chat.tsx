@@ -351,11 +351,11 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
             onClick={() =>
               handleSubmit(
                 undefined,
-                "Which journalists and bloggers cover Apple?"
+                "Which journalists and bloggers cover OpenAI?"
               )
             }
           >
-            Who covers Apple?
+            Who covers OpenAI?
           </button>
         </div>
       )}
@@ -368,7 +368,7 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
           className={styles.input}
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Enter your question (e.g. Who covers Apple?)"
+          placeholder="Enter your question (e.g. Who covers OpenAI?)"
         />
         <button
           type="submit"
