@@ -14,6 +14,7 @@ import styles from "./chat.module.css";
 type MessageProps = {
   role: "user" | "assistant" | "code";
   text: string;
+  timestamp: number;
 };
 
 const UserMessage = ({ text }: { text: string }) => {
@@ -59,12 +60,42 @@ type ChatProps = {
   exaSearchHandler?: (query: string) => Promise<string>;
 };
 
+const loadMessagesFromStorage = () => {
+  if (typeof window !== 'undefined') {
+    const savedMessages = localStorage.getItem('chatMessages');
+    if (savedMessages) {
+      const parsedMessages = JSON.parse(savedMessages);
+      const currentTime = new Date().getTime();
+      const filteredMessages = parsedMessages.filter(msg => {
+        return currentTime - msg.timestamp < 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+      });
+      return filteredMessages;
+    }
+  }
+  return [];
+};
+
 const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatProps) => {
   const [userInput, setUserInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [threadId, setThreadId] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedMessages = localStorage.getItem('chatMessages');
+      if (savedMessages) {
+        setMessages(JSON.parse(savedMessages));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && messages.length > 0) {
+      localStorage.setItem('chatMessages', JSON.stringify(messages));
+    }
+  }, [messages]);
 
   // automatically scroll to bottom of chat
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -78,11 +109,17 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
   // create a new threadID when chat component created
   useEffect(() => {
     const createThread = async () => {
-      const res = await fetch(`/api/assistants/threads`, {
-        method: "POST",
-      });
-      const data = await res.json();
-      setThreadId(data.threadId);
+      const savedThreadId = localStorage.getItem('threadId');
+      if (savedThreadId) {
+        setThreadId(savedThreadId);
+      } else {
+        const res = await fetch(`/api/assistants/threads`, {
+          method: "POST",
+        });
+        const data = await res.json();
+        setThreadId(data.threadId);
+        localStorage.setItem('threadId', data.threadId);
+      }
     };
     createThread();
   }, []);
@@ -157,7 +194,7 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
     sendMessage(messageToSend);
     setMessages((prevMessages) => [
       ...prevMessages,
-      { role: "user", text: messageToSend },
+      { role: "user", text: messageToSend, timestamp: new Date().getTime() },
     ]);
     setUserInput("");
     setInputDisabled(true);
@@ -293,7 +330,7 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
   };
 
   const appendMessage = (role, text) => {
-    setMessages((prevMessages) => [...prevMessages, { role, text }]);
+    setMessages((prevMessages) => [...prevMessages, { role, text, timestamp: new Date().getTime() }]);
   };
 
   const annotateLastMessage = (annotations) => {
@@ -313,6 +350,17 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
       return [...prevMessages.slice(0, -1), updatedLastMessage];
     });
   };
+
+  useEffect(() => {
+    const cleanup = setInterval(() => {
+      setMessages((prevMessages) => {
+        const currentTime = new Date().getTime();
+        return prevMessages.filter(msg => currentTime - msg.timestamp < 12 * 60 * 60 * 1000);
+      });
+    }, 60 * 60 * 1000); // Run every hour
+
+    return () => clearInterval(cleanup);
+  }, []);
 
   return (
     <div className={styles.chatContainer}>
