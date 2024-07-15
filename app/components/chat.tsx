@@ -352,14 +352,21 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
   };
 
   useEffect(() => {
-    const cleanup = setInterval(() => {
+    const cleanup = () => {
+      const currentTime = new Date().getTime();
       setMessages((prevMessages) => {
-        const currentTime = new Date().getTime();
-        return prevMessages.filter(msg => currentTime - msg.timestamp < 12 * 60 * 60 * 1000);
+        const filteredMessages = prevMessages.filter(msg => currentTime - msg.timestamp < 12 * 60 * 60 * 1000);
+        if (filteredMessages.length !== prevMessages.length) {
+          localStorage.setItem('chatMessages', JSON.stringify(filteredMessages));
+        }
+        return filteredMessages;
       });
-    }, 60 * 60 * 1000); // Run every hour
+    };
 
-    return () => clearInterval(cleanup);
+    const interval = setInterval(cleanup, 60 * 60 * 1000); // Run every hour
+    cleanup(); // Run immediately on mount
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
