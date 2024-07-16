@@ -12,6 +12,16 @@
   --font-heading: 'Open Sans', sans-serif;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: #1a1a1a;
+    --text-color: #f0f4f8;
+    --card-background: #2b2d42;
+    --primary-color: #64b5f6;
+    --secondary-color: #ff4081;
+  }
+}
+
 * {
   box-sizing: border-box;
   padding: 0;

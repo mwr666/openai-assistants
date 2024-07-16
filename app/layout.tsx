@@ -17,7 +17,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} ${getColorSchemeClass()}`}>
         {assistantId ? children : <Warnings />}
        <img className="logo" src="/hypelab.png" alt="hype lab logo" /> 
         <Analytics />
@@ -25,4 +25,11 @@ export default function RootLayout({ children }) {
       </body>
     </html>
   );
+}
+
+function getColorSchemeClass() {
+  if (typeof window !== 'undefined') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-mode' : 'light-mode';
+  }
+  return '';
 }
