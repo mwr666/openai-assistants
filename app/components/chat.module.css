@@ -198,3 +198,25 @@
     border-top-color: var(--primary-color);
   }
 }
+
+.exportContainer {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+}
+
+.exportButton {
+  padding: 12px 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  font-size: 1em;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.exportButton:hover {
+  background-color: #2a75e6;
+  transform: translateY(-2px);
+}

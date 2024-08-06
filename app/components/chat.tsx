@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { generateCsv } from 'export-to-csv';
 
 import { AssistantStream } from "openai/lib/AssistantStream";
 import {
@@ -39,7 +40,7 @@ const CodeMessage = ({ text }: { text: string }) => {
   return null;
 };
 
-const Message = ({ role, text }: MessageProps) => {
+const Message = ({ role, text, timestamp }: MessageProps) => {
   switch (role) {
     case "user":
       return <UserMessage text={text} />;
@@ -81,6 +82,7 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
   const [inputDisabled, setInputDisabled] = useState(false);
   const [threadId, setThreadId] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [hasResults, setHasResults] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -96,6 +98,13 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
       localStorage.setItem('chatMessages', JSON.stringify(messages));
     }
   }, [messages]);
+
+  useEffect(() => {
+    const savedHasResults = localStorage.getItem('hasResults');
+    if (savedHasResults) {
+      setHasResults(JSON.parse(savedHasResults));
+    }
+  }, []);
 
   // automatically scroll to bottom of chat
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -206,6 +215,7 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
   // textCreated - create new assistant message
   const handleTextCreated = () => {
     appendMessage("assistant", "");
+    updateHasResults(true);
   };
 
   // textDelta - append text to last assistant message
@@ -369,11 +379,84 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
     return () => clearInterval(interval);
   }, []);
 
+  const generateCSV = () => {
+    console.log("Generating CSV...");
+    console.log("All messages:", messages);
+    let rows = [];
+
+    messages.forEach((msg, index) => {
+      console.log(`Processing message ${index}:`, msg);
+      if (msg.role === "assistant") {
+        const lines = msg.text.split('\n');
+        
+        lines.forEach(line => {
+          console.log("Processing line:", line);
+          // Keep numbered list prefixes and remove asterisks
+          line = line.replace(/\*/g, '').trim();
+          
+          const numberedListMatch = line.match(/^(\d+\.)\s*(.*)/);
+          if (numberedListMatch) {
+            // This is a numbered list item
+            const [, number, content] = numberedListMatch;
+            rows.push({ Name: `${number} ${content}` });
+            console.log("Added numbered item:", `${number} ${content}`);
+          } else if (line.trim() !== '') {
+            // Add non-empty lines that are not numbered
+            rows.push({ Name: line });
+            console.log("Added line:", line);
+          }
+        });
+      }
+    });
+
+    console.log("Rows to be added to CSV:", rows);
+    return rows.length > 0 ? rows : [{ Name: 'No data available' }];
+  };
+
+  const exportToCSV = () => {
+    console.log("exportToCSV function called");
+    const data = generateCSV();
+
+    const options = {
+      fieldSeparator: ',',
+      quoteStrings: true,
+      decimalSeparator: '.',
+      showLabels: true,
+      showTitle: false,
+      title: 'Journalists Export',
+      useTextFile: false,
+      useBom: true,
+      useKeysAsHeaders: true,
+    };
+
+    const csvExporter = generateCsv(options);
+    const csv = csvExporter(data);
+
+    const blob = new Blob([csv.toString()], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'journalists_export.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    console.log("CSV file download initiated");
+  };
+
+  const updateHasResults = (value) => {
+    setHasResults(value);
+    localStorage.setItem('hasResults', JSON.stringify(value));
+  };
+
   return (
     <div className={styles.chatContainer}>
       <div className={styles.messages}>
         {messages.map((msg, index) => (
-          <Message key={index} role={msg.role} text={msg.text} />
+          <Message key={index} role={msg.role} text={msg.text} timestamp={msg.timestamp} />
         ))}
         <div ref={messagesEndRef} />
       </div>
@@ -381,6 +464,19 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
         <div className={styles.loadingIndicator}>
           <div className={styles.spinner}></div>
           <p>Searching the web...</p>
+        </div>
+      )}
+      {messages.length > 0 && (
+        <div className={styles.exportContainer}>
+          <button
+            onClick={() => {
+              console.log("Export button clicked");
+              exportToCSV();
+            }}
+            className={`${styles.button} ${styles.exportButton}`}
+          >
+            Export to CSV
+          </button>
         </div>
       )}
       {messages.length === 0 && (
