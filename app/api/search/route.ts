@@ -43,7 +43,7 @@ async function searchWeb({ query }: { query: string }): Promise<ReadableStream> 
 
         if (trimmedQuery.startsWith("find similar:")) {
           const similarQuery = trimmedQuery.replace("find similar:", "").trim();
-          searchResponse = await exa.search(similarQuery, { use_autoprompt: true });
+          searchResponse = await exa.search(similarQuery, { useAutoprompt: true });
         } else {
           searchResponse = await exa.search(trimmedQuery);
         }
