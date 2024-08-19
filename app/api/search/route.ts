@@ -41,19 +41,22 @@ async function searchWeb({ query }: { query: string }): Promise<ReadableStream> 
         const exa = new Exa(exaApiKey);
         let searchResponse;
 
-        if (trimmedQuery.startsWith("find similar:")) {
-          const similarQuery = trimmedQuery.replace("find similar:", "").trim();
-          searchResponse = await exa.search(similarQuery, { useAutoprompt: true });
-        } else {
-          searchResponse = await exa.search(trimmedQuery);
-        }
+        // Start the search asynchronously
+        const searchPromise = trimmedQuery.startsWith("find similar:") 
+          ? exa.search(trimmedQuery.replace("find similar:", "").trim(), { useAutoprompt: true })
+          : exa.search(trimmedQuery);
+
+        // Stream initial response
+        controller.enqueue(encoder.encode("Searching...\n"));
+
+        // Wait for search to complete
+        searchResponse = await searchPromise;
 
         if (!searchResponse || !searchResponse.results || searchResponse.results.length === 0) {
           throw new Error("No results found from Exa API");
         }
 
         const formattedResponse = formatSearchResponse(searchResponse);
-
         controller.enqueue(encoder.encode(formattedResponse));
       } catch (error) {
         console.error("Error in searchWeb:", error);
