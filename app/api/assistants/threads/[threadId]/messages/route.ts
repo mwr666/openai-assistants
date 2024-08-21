@@ -8,6 +8,25 @@ export async function POST(request, { params: { threadId } }) {
   try {
     const { content } = await request.json();
 
+    // Check for active runs
+    const runs = await openai.beta.threads.runs.list(threadId);
+    const activeRun = runs.data.find(run => run.status === 'in_progress');
+
+    if (activeRun) {
+      // Wait for the active run to complete with a timeout
+      const maxWaitTime = 30000; // 30 seconds
+      const startTime = Date.now();
+      while (Date.now() - startTime < maxWaitTime) {
+        const runStatus = await openai.beta.threads.runs.retrieve(threadId, activeRun.id);
+        if (runStatus.status !== 'in_progress') break;
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before checking again
+      }
+      if (Date.now() - startTime >= maxWaitTime) {
+        throw new Error('Timeout waiting for active run to complete');
+      }
+    }
+
+    // Now add the message
     await openai.beta.threads.messages.create(threadId, {
       role: "user",
       content: content,
