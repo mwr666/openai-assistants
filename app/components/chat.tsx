@@ -8,6 +8,7 @@ import {
   RequiredActionFunctionToolCall,
 } from "openai/resources";
 import Markdown from "react-markdown";
+import { toast } from 'sonner';
 
 import styles from "./chat.module.css";
 import dynamic from 'next/dynamic';
@@ -150,8 +151,11 @@ const Chat = dynamic(() => Promise.resolve(({ functionCallHandler, searchWebHand
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
   }, [messages]);
 
   // create a new threadID when chat component created
@@ -565,7 +569,29 @@ const Chat = dynamic(() => Promise.resolve(({ functionCallHandler, searchWebHand
         </div>
       )}
       {messages.length > 0 && (
-        <div className={styles.exportContainer}>
+        <div className={styles.actionContainer}>
+          <button
+            onClick={() => {
+              const lastUserMessage = messages.filter(msg => msg.role === "user").pop();
+              if (lastUserMessage) {
+                const sharedLink = `${window.location.origin}/?query=${encodeURIComponent(lastUserMessage.text)}`;
+                navigator.clipboard.writeText(sharedLink).then(() => {
+                  toast.success('Sharable link copied to clipboard.', {
+                    description: 'You can now share this link with others.',
+                    duration: 5000,
+                  });
+                });
+              } else {
+                toast.error('No query to share.', {
+                  description: 'Please enter a query first.',
+                  duration: 5000,
+                });
+              }
+            }}
+            className={`${styles.button} ${styles.shareButton}`}
+          >
+            Share
+          </button>
           <button
             onClick={() => {
               console.log("Export button clicked");

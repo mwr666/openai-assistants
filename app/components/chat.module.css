@@ -199,6 +199,39 @@
   }
 }
 
+.actionContainer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+}
+
+.shareButton,
+.exportButton {
+  padding: 12px 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  font-size: 1em;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.shareButton:hover,
+.exportButton:hover {
+  background-color: #2a75e6;
+  transform: translateY(-2px);
+}
+
+.shareButton {
+  background-color: #4caf50; /* A different color for the share button */
+}
+
+.shareButton:hover {
+  background-color: #45a049;
+}
+
 .exportContainer {
   display: flex;
   justify-content: center;

@@ -13,7 +13,7 @@ const Header = () => {
       <div className={styles.authButtons}>
         {isSignedIn ? (
           <>
-            <Link href="/dashboard" className={styles.dashboardLink}>Dashboard</Link>
+            <Link href="/dashboard" className={styles.authButton}>Dashboard</Link>
             <UserButton afterSignOutUrl="/" />
           </>
         ) : (

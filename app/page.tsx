@@ -16,6 +16,7 @@ const Home = () => {
     if (sharedQuery) {
       setInitialQuery(decodeURIComponent(sharedQuery));
     }
+    window.scrollTo(0, 0);
   }, []);
 
   return (
