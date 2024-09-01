@@ -17,16 +17,19 @@ export async function POST(request, { params: { threadId } }) {
       const maxWaitTime = 30000; // 30 seconds
       const startTime = Date.now();
       while (Date.now() - startTime < maxWaitTime) {
-        const runStatus = await openai.beta.threads.runs.retrieve(threadId, activeRun.id);
-        if (runStatus.status !== 'in_progress') break;
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before checking again
+        const updatedRun = await openai.beta.threads.runs.retrieve(threadId, activeRun.id);
+        if (updatedRun.status !== 'in_progress') {
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before checking again
       }
+      // If the run is still active after the timeout, throw an error
       if (Date.now() - startTime >= maxWaitTime) {
         throw new Error('Timeout waiting for active run to complete');
       }
     }
 
-    // Now add the message
+    // Now that we're sure there's no active run, we can add the new message
     await openai.beta.threads.messages.create(threadId, {
       role: "user",
       content: content,

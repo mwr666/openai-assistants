@@ -1,0 +1,26 @@
+:root {
+  --toaster-success-bg: #4caf50;
+  --toaster-success-text: #ffffff;
+  --toaster-success-icon: #ffffff;
+}
+
+[data-sonner-toaster][data-theme='light'] {
+  --toast-success: var(--toaster-success-bg);
+  --toast-success-foreground: var(--toaster-success-text);
+  font-family: var(--font-sans);
+}
+
+[data-sonner-toaster][data-theme='dark'] {
+  --toast-success: var(--toaster-success-bg);
+  --toast-success-foreground: var(--toaster-success-text);
+  font-family: var(--font-sans);
+}
+
+.sonner-toast[data-type='success'] {
+  background-color: var(--toaster-success-bg);
+  color: var(--toaster-success-text);
+}
+
+.sonner-toast[data-type='success'] [data-icon] {
+  color: var(--toaster-success-icon);
+}

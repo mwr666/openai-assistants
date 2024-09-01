@@ -2,33 +2,23 @@
 
 import React from "react";
 import dynamic from 'next/dynamic';
-import styles from "./page.module.css";
+import styles from "../../page.module.css";
 import Exa from "exa-js";
 
-const Chat = dynamic(() => import('./components/chat'), { ssr: false });
+const Chat = dynamic(() => import('../../components/chat'), { ssr: false });
 
-const Home = () => {
+const SharedQueryPage = ({ params }) => {
   return (
     <main className={styles.main}>
       <div className={styles.container}>
         <div className={styles.column}>
           <h1 className={styles.heading}>Who Covers It?</h1>
-          <p>
-            Identify journalists, bloggers, and publications to pitch your story
-          </p>
-          <br />
-          <p>
-            <em>
-              Powered by everyone's favorite{" "}
-              <a href="https://hypelab.digital" target="_blank">
-                PR agency
-              </a>
-            </em>
-          </p>
+          <h3>Shared Query Results</h3>
         </div>
         <div className={styles.chatContainer}>
           <div className={styles.chat}>
             <Chat
+              initialQuery={params.id}
               searchWebHandler={async (query) => {
                 console.log("searchWebHandler", query);
 
@@ -59,7 +49,7 @@ const Home = () => {
               exaSearchHandler={async (query) => {
                 console.log("exaSearchHandler", query);
 
-                const exaApiKey = process.env.EXA_API_KEY;
+                const exaApiKey = process.env.NEXT_PUBLIC_EXA_API_KEY;
 
                 if (!exaApiKey) {
                   console.error("EXA_API_KEY is not set in the environment variables");
@@ -78,16 +68,9 @@ const Home = () => {
             />
           </div>
         </div>
-        <div className={styles.footer}>
-          <br />
-          <p>
-            Information <em>may</em> be out of date or incorrect. Verify
-            everything.
-          </p>
-        </div>
       </div>
     </main>
   );
 };
 
-export default Home;
+export default SharedQueryPage;

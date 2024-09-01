@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { generateCsv } from 'export-to-csv';
-
 import { AssistantStream } from "openai/lib/AssistantStream";
 import {
   AssistantStreamEvent,
@@ -11,6 +10,7 @@ import {
 import Markdown from "react-markdown";
 
 import styles from "./chat.module.css";
+import dynamic from 'next/dynamic';
 
 type MessageProps = {
   role: "user" | "assistant" | "code";
@@ -97,6 +97,7 @@ type ChatProps = {
   ) => Promise<string>;
   searchWebHandler?: (query: string) => Promise<string>;
   exaSearchHandler?: (query: string) => Promise<string>;
+  initialQuery?: string;
 };
 
 const loadMessagesFromStorage = () => {
@@ -114,9 +115,9 @@ const loadMessagesFromStorage = () => {
   return [];
 };
 
-const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatProps) => {
+const Chat = dynamic(() => Promise.resolve(({ functionCallHandler, searchWebHandler, exaSearchHandler, initialQuery }: ChatProps) => {
   const [userInput, setUserInput] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<MessageProps[]>(loadMessagesFromStorage);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [threadId, setThreadId] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -160,18 +161,35 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
       if (savedThreadId) {
         setThreadId(savedThreadId);
       } else {
-        const res = await fetch(`/api/assistants/threads`, {
-          method: "POST",
-        });
-        const data = await res.json();
-        setThreadId(data.threadId);
-        localStorage.setItem('threadId', data.threadId);
+        try {
+          const res = await fetch(`/api/assistants/threads`, {
+            method: "POST",
+          });
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          const data = await res.json();
+          setThreadId(data.threadId);
+          localStorage.setItem('threadId', data.threadId);
+        } catch (error) {
+          console.error("Error creating thread:", error);
+        }
       }
     };
     createThread();
   }, []);
 
   const sendMessage = async (text) => {
+    if (!threadId) {
+      console.error("Thread ID is not set");
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "assistant", text: "An error occurred while sending the message. Please try again.", timestamp: new Date().getTime() },
+      ]);
+      setInputDisabled(false);
+      return;
+    }
+
     try {
       const response = await fetch(
         `/api/assistants/threads/${threadId}/messages`,
@@ -191,7 +209,7 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
       console.error("Error sending message:", error);
       setMessages((prevMessages) => [
         ...prevMessages,
-        { role: "assistant", text: "An error occurred while sending the message. Please try again." },
+        { role: "assistant", text: "An error occurred while sending the message. Please try again.", timestamp: new Date().getTime() },
       ]);
       setInputDisabled(false);
     }
@@ -223,7 +241,7 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
       console.error("Error in submitActionResult:", error);
       setMessages((prevMessages) => [
         ...prevMessages,
-        { role: "assistant", text: "An error occurred while processing the request. Please try again." },
+        { role: "assistant", text: "An error occurred while processing the request. Please try again.", timestamp: new Date().getTime() },
       ]);
       setInputDisabled(false);
     }
@@ -246,6 +264,13 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
     setUserInput("");
     setInputDisabled(true);
     scrollToBottom();
+    addRecentQuery(messageToSend);
+  };
+
+  const addRecentQuery = (query: string) => {
+    const recentQueries = JSON.parse(localStorage.getItem('recentQueries') || '[]');
+    const updatedQueries = [query, ...recentQueries.slice(0, 4)];
+    localStorage.setItem('recentQueries', JSON.stringify(updatedQueries));
   };
 
   /* Stream Event Handlers */
@@ -346,7 +371,7 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
         console.error("Stream error:", error);
         setMessages((prevMessages) => [
           ...prevMessages,
-          { role: "assistant", text: "An error occurred while processing the response. Please try again." },
+          { role: "assistant", text: "An error occurred while processing the response. Please try again.", timestamp: new Date().getTime() },
         ]);
         setInputDisabled(false);
       });
@@ -354,7 +379,7 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
       console.error("Error handling readable stream:", error);
       setMessages((prevMessages) => [
         ...prevMessages,
-        { role: "assistant", text: "An error occurred while processing the response. Please try again." },
+        { role: "assistant", text: "An error occurred while processing the response. Please try again.", timestamp: new Date().getTime() },
       ]);
       setInputDisabled(false);
     }
@@ -490,6 +515,47 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
     localStorage.setItem('hasResults', JSON.stringify(value));
   };
 
+  useEffect(() => {
+    const handleInitialQuery = async () => {
+      const pendingQuery = initialQuery
+        ? localStorage.getItem(`sharedQuery_${initialQuery}`)
+        : localStorage.getItem('pendingQuery');
+      if (pendingQuery && threadId) {
+        try {
+          await handleSubmit(undefined, pendingQuery);
+        } catch (error) {
+          console.error("Error handling initial query:", error);
+        } finally {
+          if (initialQuery) {
+            localStorage.removeItem(`sharedQuery_${initialQuery}`);
+          } else {
+            localStorage.removeItem('pendingQuery');
+          }
+        }
+      }
+    };
+
+    if (threadId) {
+      handleInitialQuery();
+    }
+  }, [threadId, initialQuery]);
+
+  useEffect(() => {
+    const clearSharedQueries = () => {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sharedQuery_')) {
+          localStorage.removeItem(key);
+        }
+      });
+    };
+
+    window.addEventListener('beforeunload', clearSharedQueries);
+
+    return () => {
+      window.removeEventListener('beforeunload', clearSharedQueries);
+    };
+  }, []);
+
   return (
     <div className={styles.chatContainer}>
       <div className={styles.messages}>
@@ -569,6 +635,6 @@ const Chat = ({ functionCallHandler, searchWebHandler, exaSearchHandler }: ChatP
       </form>
     </div>
   );
-};
+}), { ssr: false });
 
 export default Chat;

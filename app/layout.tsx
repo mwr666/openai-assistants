@@ -1,9 +1,12 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Warnings from "./components/warnings";
-import { assistantId } from "./assistant-config";
+import { ClerkProvider } from '@clerk/nextjs';
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/react"
+import Header from './components/Header';
+import { Toaster } from 'sonner'
+import './toast.css'
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -16,14 +19,17 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} ${getColorSchemeClass()}`}>
-        {assistantId ? children : <Warnings />}
-       <img className="logo" src="/hypelab.png" alt="hype lab logo" /> 
-        <Analytics />
-        <SpeedInsights />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={`${inter.className} ${getColorSchemeClass()}`}>
+          <Header />
+          {children}
+          <Toaster richColors closeButton />
+          <Analytics />
+          <SpeedInsights />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
 
