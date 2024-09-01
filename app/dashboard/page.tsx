@@ -20,7 +20,6 @@ const Dashboard = () => {
   }, []);
 
   const handleQueryClick = (query) => {
-    localStorage.setItem('pendingQuery', query);
     const sharedLink = `${window.location.origin}/?query=${encodeURIComponent(query)}`;
     navigator.clipboard.writeText(sharedLink).then(() => {
       toast.success('Sharable link copied to clipboard.', {
@@ -28,7 +27,6 @@ const Dashboard = () => {
         duration: 10000,
       });
     });
-    router.push('/');
   };
 
   if (!isLoaded || !userId) {

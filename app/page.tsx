@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from 'next/dynamic';
 import styles from "./page.module.css";
 import Exa from "exa-js";
@@ -8,6 +8,16 @@ import Exa from "exa-js";
 const Chat = dynamic(() => import('./components/chat'), { ssr: false });
 
 const Home = () => {
+  const [initialQuery, setInitialQuery] = useState("");
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedQuery = urlParams.get('query');
+    if (sharedQuery) {
+      setInitialQuery(decodeURIComponent(sharedQuery));
+    }
+  }, []);
+
   return (
     <main className={styles.main}>
       <div className={styles.container}>
@@ -29,6 +39,7 @@ const Home = () => {
         <div className={styles.chatContainer}>
           <div className={styles.chat}>
             <Chat
+              initialQuery={initialQuery}
               searchWebHandler={async (query) => {
                 console.log("searchWebHandler", query);
 

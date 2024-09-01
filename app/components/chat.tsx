@@ -517,20 +517,14 @@ const Chat = dynamic(() => Promise.resolve(({ functionCallHandler, searchWebHand
 
   useEffect(() => {
     const handleInitialQuery = async () => {
-      const pendingQuery = initialQuery
-        ? localStorage.getItem(`sharedQuery_${initialQuery}`)
-        : localStorage.getItem('pendingQuery');
-      if (pendingQuery && threadId) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sharedQuery = urlParams.get('query');
+      
+      if (sharedQuery && threadId) {
         try {
-          await handleSubmit(undefined, pendingQuery);
+          await handleSubmit(undefined, decodeURIComponent(sharedQuery));
         } catch (error) {
-          console.error("Error handling initial query:", error);
-        } finally {
-          if (initialQuery) {
-            localStorage.removeItem(`sharedQuery_${initialQuery}`);
-          } else {
-            localStorage.removeItem('pendingQuery');
-          }
+          console.error("Error handling shared query:", error);
         }
       }
     };
@@ -538,7 +532,7 @@ const Chat = dynamic(() => Promise.resolve(({ functionCallHandler, searchWebHand
     if (threadId) {
       handleInitialQuery();
     }
-  }, [threadId, initialQuery]);
+  }, [threadId]);
 
   useEffect(() => {
     const clearSharedQueries = () => {
