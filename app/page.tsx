@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import dynamic from 'next/dynamic';
 import styles from "./page.module.css";
 import Exa from "exa-js";
+import { structuredData } from './structured-data';
 
 const Chat = dynamic(() => import('./components/chat'), { ssr: false });
 
@@ -21,8 +22,12 @@ const Home = () => {
 
   return (
     <main className={styles.main}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <div className={styles.container}>
-        <div className={styles.column}>
+        <section className={styles.column}>
           <h1 className={styles.heading}>Who Covers It?</h1>
           <p>
             Identify journalists, bloggers, and publications to pitch your story
@@ -31,12 +36,12 @@ const Home = () => {
           <p>
             <em>
               Powered by everyone's favorite{" "}
-              <a href="https://hypelab.digital" target="_blank">
+              <a href="https://hypelab.digital" target="_blank" rel="noopener noreferrer">
                 PR agency
               </a>
             </em>
           </p>
-        </div>
+        </section>
         <div className={styles.chatContainer}>
           <div className={styles.chat}>
             <Chat

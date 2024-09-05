@@ -6,16 +6,28 @@ import { Analytics } from "@vercel/analytics/react"
 import Header from './components/Header';
 import { Toaster } from 'sonner'
 import './toast.css'
+import Image from 'next/image';
+import type { Metadata } from 'next';
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  title: "Who Covers It?",
-  description: "Identify journalists, bloggers, and publications to pitch your story",
-  icons: {
-    icon: "/openai.svg",
-  },
-};
+export async function generateMetadata({ params }): Promise<Metadata> {
+  return {
+    title: "Who Covers It? | Identify journalists for your story",
+    description: "Identify journalists, bloggers, and publications to pitch your story. Powered by AI and comprehensive media data.",
+    openGraph: {
+      title: "Who Covers It? | Identify journalists for your story",
+      description: "Identify journalists, bloggers, and publications to pitch your story. Powered by AI and comprehensive media data.",
+      images: ['/og-image.png'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: "Who Covers It? | Identify journalists for your story",
+      description: "Identify journalists, bloggers, and publications to pitch your story. Powered by AI and comprehensive media data.",
+      images: ['/og-image.png'],
+    },
+  };
+}
 
 export default function RootLayout({ children }) {
   return (
