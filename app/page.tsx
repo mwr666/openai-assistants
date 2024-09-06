@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import dynamic from 'next/dynamic';
 import styles from "./page.module.css";
 import Exa from "exa-js";
-import { structuredData } from './structured-data';
+import { structuredData, organizationStructuredData } from './structured-data';
 
 const Chat = dynamic(() => import('./components/chat'), { ssr: false });
 
@@ -22,6 +22,10 @@ const Home = () => {
 
   return (
     <main className={styles.main}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}

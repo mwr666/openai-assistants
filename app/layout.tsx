@@ -11,20 +11,35 @@ import type { Metadata } from 'next';
 
 const inter = Inter({ subsets: ["latin"] });
 
-export async function generateMetadata({ params }): Promise<Metadata> {
+export async function generateMetadata({ params, pathname }): Promise<Metadata> {
+  const baseTitle = "Who Covers It? | Identify journalists for your story";
+  const baseDescription = "Identify journalists, bloggers, and publications to pitch your story. Powered by AI and comprehensive media data.";
+  
+  let title = baseTitle;
+  let description = baseDescription;
+
+  if (pathname === '/dashboard') {
+    title = "Dashboard | " + baseTitle;
+    description = "View your recent queries and manage your account.";
+  }
+
   return {
-    title: "Who Covers It? | Identify journalists for your story",
-    description: "Identify journalists, bloggers, and publications to pitch your story. Powered by AI and comprehensive media data.",
+    title,
+    description,
     openGraph: {
-      title: "Who Covers It? | Identify journalists for your story",
-      description: "Identify journalists, bloggers, and publications to pitch your story. Powered by AI and comprehensive media data.",
-      images: ['/public/hypelab.png'],
+      title,
+      description,
+      images: ['/og-image.png'],
     },
     twitter: {
       card: 'summary_large_image',
-      title: "Who Covers It? | Identify journalists for your story",
-      description: "Identify journalists, bloggers, and publications to pitch your story. Powered by AI and comprehensive media data.",
-      images: ['/public/hypelab.png'],
+      title,
+      description,
+      images: ['/og-image.png'],
+    },
+    metadataBase: new URL('https://whocoversit.com'),
+    alternates: {
+      canonical: pathname,
     },
   };
 }
@@ -33,6 +48,10 @@ export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+          <link rel="alternate" hrefLang="en" href="https://whocoversit.com/en" />
+          <link rel="alternate" hrefLang="x-default" href="https://whocoversit.com" />
+        </head>
         <body className={`${inter.className} ${getColorSchemeClass()}`}>
           <Header />
           {children}

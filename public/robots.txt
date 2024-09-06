@@ -1,0 +1,10 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://whocoversit.com
+
+# Sitemaps
+Sitemap: https://whocoversit.com/sitemap.xml
+Sitemap: https://whocoversit.com/server-sitemap.xml

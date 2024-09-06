@@ -57,6 +57,7 @@ a:hover {
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
   border-radius: 50%;
   overflow: hidden;
+  loading: lazy;
 }
 
 @media (max-width: 1100px) {
