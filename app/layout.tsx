@@ -18,13 +18,13 @@ export async function generateMetadata({ params }): Promise<Metadata> {
     openGraph: {
       title: "Who Covers It? | Identify journalists for your story",
       description: "Identify journalists, bloggers, and publications to pitch your story. Powered by AI and comprehensive media data.",
-      images: ['/og-image.png'],
+      images: ['/public/hypelab.png'],
     },
     twitter: {
       card: 'summary_large_image',
       title: "Who Covers It? | Identify journalists for your story",
       description: "Identify journalists, bloggers, and publications to pitch your story. Powered by AI and comprehensive media data.",
-      images: ['/og-image.png'],
+      images: ['/public/hypelab.png'],
     },
   };
 }
